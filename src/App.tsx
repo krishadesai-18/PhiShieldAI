@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Navbar from './components/Navbar';
@@ -34,20 +34,30 @@ function AnimatedRoutes() {
   );
 }
 
+function Layout() {
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/login';
+
+  return (
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans transition-colors duration-300 overflow-x-hidden">
+      <Navbar />
+      <main className={`flex-grow container mx-auto px-4 ${isLoginPage ? 'py-0 flex items-center justify-center' : 'py-8'}`}>
+        <AnimatedRoutes />
+      </main>
+      <Footer isCompact={isLoginPage} />
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
         <Router>
-          <div className="min-h-screen bg-background text-foreground flex flex-col font-sans transition-colors duration-300">
-            <Navbar />
-            <main className="flex-grow container mx-auto px-4 py-8">
-              <AnimatedRoutes />
-            </main>
-            <Footer />
-          </div>
+          <Layout />
         </Router>
       </AuthProvider>
     </ThemeProvider>
   );
 }
+

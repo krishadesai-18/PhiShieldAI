@@ -290,13 +290,13 @@ export default function Scan() {
                 {activeScan.error && (
                   <div className="p-12 border border-red-500/20 bg-red-500/5 rounded-[3rem] text-center space-y-4">
                     <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-2" />
-                    <h3 className="text-2xl font-bold text-red-500">Forensics Terminated</h3>
+                    <h3 className="text-2xl font-bold text-red-500">Analysis Terminated</h3>
                     <p className="text-muted-foreground">{activeScan.error}</p>
                     <button 
                       onClick={() => scanSingleImage(activeScan.id)}
                       className="px-8 py-3 bg-red-500 text-white rounded-2xl font-bold mt-4"
                     >
-                      Retry Forensics
+                      Retry Analysis
                     </button>
                   </div>
                 )}
