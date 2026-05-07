@@ -41,7 +41,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`PhishShield Server running on http://localhost:${PORT}`);
+    console.log(`PhiShield Server running on http://localhost:${PORT}`);
   });
 }
 

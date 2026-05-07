@@ -1,88 +1,121 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
-import { User, Mail, Shield, ShieldAlert, Key, Globe } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
+import { User, Mail, Sun, Moon, Check, Edit2, Loader2 } from 'lucide-react';
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, updateDisplayName } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const [isEditing, setIsEditing] = useState(false);
+  const [newName, setNewName] = useState(user?.displayName || '');
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!user) return null;
+
+  const handleUpdateName = async () => {
+    if (newName.trim() === user.displayName) {
+      setIsEditing(false);
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await updateDisplayName(newName.trim());
+      setIsEditing(false);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-2xl mx-auto"
+      className="max-w-xl mx-auto"
     >
-      <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xl">
-        <div className="h-32 bg-gradient-to-r from-primary/20 to-accent/20 relative">
-          <div className="absolute -bottom-12 left-8">
-            <img 
-              src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}`} 
-              className="w-24 h-24 rounded-2xl border-4 border-card shadow-lg" 
-              alt="Avatar" 
-            />
-          </div>
-        </div>
+      <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-2xl relative">
+        <div className="h-32 bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5" />
         
-        <div className="pt-16 p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold">{user.displayName}</h1>
-            <p className="text-muted-foreground flex items-center gap-1">
-              <Mail className="w-4 h-4" />
-              {user.email}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4">
-            <SettingsItem 
-              icon={<Shield className="w-5 h-5 text-primary" />}
-              title="Account Security"
-              description="Your account is protected by Google Identity Services."
-              status="Level 2 Secure"
-            />
-            <SettingsItem 
-              icon={<Globe className="w-5 h-5 text-primary" />}
-              title="Geolocation Privacy"
-              description="Analysis servers are located in asia-southeast1."
-              status="Compliant"
-            />
-            <SettingsItem 
-              icon={<Key className="w-5 h-5 text-primary" />}
-              title="API Access"
-              description="Manage tokens for external security integrations."
-              status="Developer Only"
-            />
-          </div>
-
-          <div className="mt-8 pt-8 border-t border-border flex justify-between items-center">
-            <div className="flex items-center gap-2 text-emerald-500 font-semibold">
-              <ShieldAlert className="w-5 h-5" />
-              Protection Active
+        <div className="px-8 pb-12">
+          <div className="relative -mt-12 mb-8 flex justify-between items-end">
+            <div className="relative group">
+              <img 
+                src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}`} 
+                className="w-24 h-24 rounded-2xl border-4 border-card shadow-xl object-cover" 
+                alt="Avatar" 
+              />
+              <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <p className="text-[10px] text-white font-bold uppercase tracking-widest">Google Auth</p>
+              </div>
             </div>
-            <button className="text-sm font-medium text-muted-foreground hover:text-foreground underline">
-              View Privacy Audit
+
+            <button 
+              onClick={toggleTheme}
+              className="p-3 bg-muted/50 hover:bg-muted border border-border rounded-2xl transition-all"
+              title="Toggle Theme"
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-primary" />}
             </button>
+          </div>
+
+          <div className="space-y-8">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ml-1">
+                Display Name
+              </label>
+              <div className="flex items-center gap-3">
+                {isEditing ? (
+                  <div className="flex-grow flex gap-2">
+                    <input 
+                      type="text"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      className="flex-grow bg-muted/50 border border-border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                      placeholder="Enter your name"
+                      autoFocus
+                    />
+                    <button 
+                      onClick={handleUpdateName}
+                      disabled={isSaving}
+                      className="p-2 bg-primary text-primary-foreground rounded-xl hover:scale-105 transition-transform disabled:opacity-50"
+                    >
+                      {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <h1 className="text-2xl font-bold tracking-tight">{user.displayName}</h1>
+                    <button 
+                      onClick={() => setIsEditing(true)}
+                      className="p-2 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-1 opacity-60">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ml-1">
+                Email Address
+              </label>
+              <div className="flex items-center gap-2 p-4 bg-muted/30 border border-border/50 rounded-2xl">
+                <Mail className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">{user.email}</span>
+              </div>
+            </div>
+
+            <div className="pt-8 border-t border-border">
+              <div className="flex items-center justify-center text-xs text-muted-foreground font-mono">
+                <span>Account Status: Verified</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </motion.div>
-  );
-}
-
-function SettingsItem({ icon, title, description, status }: { icon: React.ReactNode, title: string, description: string, status: string }) {
-  return (
-    <div className="flex items-start justify-between p-4 bg-muted/20 border border-border/50 rounded-xl hover:bg-muted/30 transition-colors">
-      <div className="flex gap-4">
-        <div className="mt-1">{icon}</div>
-        <div>
-          <h4 className="font-semibold">{title}</h4>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
-      </div>
-      <div className="text-xs font-mono bg-primary/10 text-primary px-2 py-1 rounded">
-        {status}
-      </div>
-    </div>
   );
 }

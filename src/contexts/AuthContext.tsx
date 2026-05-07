@@ -4,7 +4,8 @@ import {
   onAuthStateChanged, 
   signInWithPopup, 
   GoogleAuthProvider, 
-  signOut as firebaseSignOut 
+  signOut as firebaseSignOut,
+  updateProfile
 } from 'firebase/auth';
 import { auth, db } from '../lib/firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -15,6 +16,7 @@ interface AuthContextType {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
+  updateDisplayName: (name: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -75,8 +77,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateDisplayName = async (name: string) => {
+    if (!auth.currentUser) return;
+    try {
+      await updateProfile(auth.currentUser, { displayName: name });
+      const userRef = doc(db, 'users', auth.currentUser.uid);
+      await setDoc(userRef, { 
+        displayName: name,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      setUser({ ...auth.currentUser }); // Trigger re-render
+    } catch (error) {
+      console.error("Update profile failed:", error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, signInWithGoogle, logout, updateDisplayName }}>
       {!loading && children}
     </AuthContext.Provider>
   );

@@ -1,4 +1,4 @@
-# PhishShield AI Security Specification
+# PhiShield AI Security Specification
 
 ## 1. Data Invariants
 - A Scan must belong to the authenticated user who created it (`userId == request.auth.uid`).
