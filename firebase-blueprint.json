@@ -1,0 +1,73 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Extended user information stored in Firestore.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "role": { "type": "string", "enum": ["user", "admin"] }
+      },
+      "required": ["userId", "email"]
+    },
+    "Scan": {
+      "title": "Phishing Scan",
+      "description": "Represents a single email analysis scan.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "imageURL": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "completed", "failed"] },
+        "verdict": { "type": "string", "enum": ["phishing", "safe", "suspicious"] },
+        "confidence": { "type": "number" },
+        "explanation": { "type": "string" },
+        "indicators": {
+          "type": "object",
+          "properties": {
+            "suspiciousLinks": { "type": "boolean" },
+            "urgencyLanguage": { "type": "boolean" },
+            "fakeDomains": { "type": "boolean" },
+            "impersonation": { "type": "boolean" },
+            "grammarMistakes": { "type": "boolean" },
+            "credentialStealing": { "type": "boolean" }
+          }
+        },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "imageURL", "timestamp"]
+    },
+    "Report": {
+      "title": "Security Report",
+      "description": "A refined report based on one or more scans.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "scanIds": { "type": "array", "items": { "type": "string" } },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "scanIds", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles by UID."
+    },
+    "scans/{scanId}": {
+      "schema": "Scan",
+      "description": "Collection of all email scans."
+    },
+    "reports/{reportId}": {
+      "schema": "Report",
+      "description": "Detailed security reports."
+    }
+  }
+}

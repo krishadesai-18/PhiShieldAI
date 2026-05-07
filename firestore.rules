@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Validations ---
+
+    function isValidUser(data) {
+      return data.userId is string && data.userId.size() <= 128 &&
+             data.email is string && data.email.size() <= 256 &&
+             (data.get('displayName', '') is string && data.get('displayName', '').size() <= 128) &&
+             (data.get('photoURL', '') is string && data.get('photoURL', '').size() <= 1024) &&
+             data.role in ['user', 'admin'];
+    }
+
+    function isValidScan(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.imageURL is string && data.imageURL.size() <= 1048576 && // 1MB limit for base64
+             data.status in ['pending', 'completed', 'failed'] &&
+             data.verdict in ['phishing', 'safe', 'suspicious'] &&
+             data.confidence is number && data.confidence >= 0 && data.confidence <= 100 &&
+             data.explanation is string && data.explanation.size() <= 10000 &&
+             data.indicators is map &&
+             data.timestamp == request.time;
+    }
+
+    function isValidReport(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.scanIds is list && data.scanIds.size() <= 50 &&
+             data.content is string && data.content.size() <= 10000 &&
+             data.createdAt == request.time;
+    }
+
+    // --- Collection Rules ---
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().role == 'user';
+      allow update: if isOwner(userId) && isValidUser(incoming()) && 
+                    incoming().role == existing().role && // Prevent role escalation
+                    incoming().userId == existing().userId; // Immutable ID
+    }
+
+    match /scans/{scanId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(scanId) && isValidScan(incoming());
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /reports/{reportId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(reportId) && isValidReport(incoming());
+    }
+  }
+}

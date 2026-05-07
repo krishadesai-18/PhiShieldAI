@@ -1,0 +1,6 @@
+{
+  "name": "PhiShield",
+  "description": "AI-powered phishing email detection and security analysis platform using Gemini Vision.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
