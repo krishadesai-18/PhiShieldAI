@@ -45,7 +45,7 @@ export default function Dashboard() {
         }, { total: 0, safe: 0, phishing: 0, suspicious: 0 });
 
         setStats(counts);
-        setRecentScans(scans.slice(0, 5));
+        setRecentScans(scans.slice(0, 4));
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {
@@ -67,17 +67,13 @@ export default function Dashboard() {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="space-y-8"
+      className="space-y-8 pb-20"
     >
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">PhiShield AI Dashboard</h1>
-          <p className="text-muted-foreground">Overview of your organizational threat landscape.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-xs text-muted-foreground">Analyze email security threats</p>
         </div>
-        <Link to="/scan" className="px-6 py-3 bg-primary text-white rounded-2xl font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20">
-          <Shield className="w-4 h-4" />
-          New Scan
-        </Link>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -88,33 +84,46 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-1 bg-card border border-border rounded-3xl p-6 shadow-xl">
-          <h3 className="text-xl font-bold mb-6">Threat Distribution</h3>
+        <div className="md:col-span-1 bg-card border border-border rounded-3xl p-6 shadow-xl flex flex-col min-h-[400px]">
+          <h3 className="text-lg font-bold mb-2">Threat Distribution</h3>
           {data.length > 0 ? (
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={data}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {data.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex justify-center gap-4 text-xs mt-4">
+            <div className="flex-grow flex flex-col justify-between pt-4">
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={data}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={85}
+                      paddingAngle={8}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {data.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '12px', fontSize: '12px' }}
+                      itemStyle={{ color: '#fff' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-3 mt-8 bg-muted/20 p-5 rounded-2xl border border-border/50">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 px-1">Security Legend</p>
                 {data.map(d => (
-                  <div key={d.name} className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }}></div>
-                    <span>{d.name}</span>
+                  <div key={d.name} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0 w-3 h-3 rounded-full" style={{ backgroundColor: d.color, boxShadow: `0 0 12px ${d.color}60` }}></div>
+                      <span className="text-[11px] font-bold uppercase tracking-widest text-foreground">{d.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <span className="text-sm font-black tracking-tighter text-primary">{d.value}</span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -129,32 +138,36 @@ export default function Dashboard() {
 
         <div className="md:col-span-2 bg-card border border-border rounded-3xl p-6 shadow-xl">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold">Recent Forensics</h3>
-            <Link to="/history" className="text-sm text-primary hover:underline flex items-center gap-1">
-              View All <ArrowRight className="w-4 h-4" />
+            <h3 className="text-lg font-bold">Recent</h3>
+            <Link to="/history" className="text-xs text-primary hover:underline flex items-center gap-1">
+              View All <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
           
           <div className="space-y-4">
             {recentScans.length > 0 ? recentScans.map((scan) => (
-              <div key={scan.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-border/50">
+              <Link 
+                key={scan.id} 
+                to={`/history?id=${scan.id}`}
+                className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-border/50 hover:bg-card hover:border-primary/20 transition-all group"
+              >
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
                     scan.verdict?.toLowerCase() === 'phishing' ? 'bg-red-500/10 text-red-500' :
                     scan.verdict?.toLowerCase() === 'safe' ? 'bg-emerald-500/10 text-emerald-500' :
                     'bg-amber-500/10 text-amber-500'
                   }`}>
-                    <Shield className="w-6 h-6" />
+                    <Shield className="w-5 h-5" />
                   </div>
-                  <div>
-                    <p className="font-semibold capitalize">{scan.verdict} Detection</p>
-                    <p className="text-xs text-muted-foreground">{new Date(scan.timestamp?.toDate()).toLocaleString()}</p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold truncate pr-4">{scan.imageName || `${scan.verdict} Detection`}</p>
+                    <p className="text-[10px] text-muted-foreground">{scan.timestamp ? new Date(scan.timestamp.toDate()).toLocaleString() : 'Recent'}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium">{scan.confidence}% Confidence</p>
+                <div className="text-right shrink-0">
+                  <p className="text-xs font-medium">{scan.confidence}% Confidence</p>
                 </div>
-              </div>
+              </Link>
             )) : (
               <p className="text-center py-10 text-muted-foreground">No recent activity detected.</p>
             )}
@@ -172,7 +185,7 @@ function StatCard({ title, value, icon }: { title: string, value: number, icon: 
         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">{title}</span>
         {icon}
       </div>
-      <div className="text-3xl font-bold tracking-tight">{value}</div>
+      <div className="text-2xl font-bold tracking-tight">{value}</div>
     </div>
   );
 }

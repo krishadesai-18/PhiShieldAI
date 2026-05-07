@@ -26,12 +26,12 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           className="relative z-10 max-w-4xl mx-auto text-center"
         >
-          <h1 className="text-6xl md:text-7xl font-bold mb-8 tracking-tight leading-[1.1]">
+          <h1 className="text-5xl md:text-6xl font-bold mb-8 tracking-tight leading-[1.1]">
             Digital Identity <br />
             <span className="text-primary bg-clip-text">Fortified by AI</span>
           </h1>
           
-          <p className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground mb-12 leading-relaxed max-w-xl mx-auto">
             PhiShield AI leverages advanced computer vision to decapitate phishing attacks 
             before they reach your credentials. Modern security for the modern web.
           </p>
@@ -68,20 +68,20 @@ export default function Home() {
         {/* Why it Matters Section */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
           <div className="space-y-6">
-            <h2 className="text-4xl font-bold leading-tight">Why Phishing Detection <br />Matters Today ?</h2>
-            <div className="space-y-6 text-muted-foreground">
+            <h2 className="text-3xl font-bold leading-tight">Why Phishing Detection <br />Matters Today ?</h2>
+            <div className="space-y-6 text-xs text-muted-foreground">
               <p>In the age of AI-generated content, phishing emails have become indistinguishable from legitimate communications. Traditional filters aren't enough.</p>
               <ul className="space-y-4 font-medium">
                 <li className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-primary/10 rounded flex items-center justify-center"><AlertTriangle className="w-4 h-4 text-primary" /></div>
+                  <div className="w-5 h-5 bg-primary/10 rounded flex items-center justify-center shrink-0"><AlertTriangle className="w-3.5 h-3.5 text-primary" /></div>
                   90% of data breaches start with a phishing email
                 </li>
                 <li className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-primary/10 rounded flex items-center justify-center"><AlertTriangle className="w-4 h-4 text-primary" /></div>
+                  <div className="w-5 h-5 bg-primary/10 rounded flex items-center justify-center shrink-0"><AlertTriangle className="w-3.5 h-3.5 text-primary" /></div>
                   Financial losses exceed $12B annually globally
                 </li>
                 <li className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-primary/10 rounded flex items-center justify-center"><AlertTriangle className="w-4 h-4 text-primary" /></div>
+                  <div className="w-5 h-5 bg-primary/10 rounded flex items-center justify-center shrink-0"><AlertTriangle className="w-3.5 h-3.5 text-primary" /></div>
                   Credential theft leads to total organizational takeover
                 </li>
               </ul>
@@ -124,8 +124,8 @@ export default function Home() {
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-32 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-primary/5 rounded-[4rem] -z-10 rotate-1 shadow-inner" />
-        <h2 className="text-4xl font-bold mb-6">Ready to secure your communications?</h2>
-        <p className="max-w-xl mx-auto text-muted-foreground mb-10 text-lg">
+        <h2 className="text-3xl font-bold mb-6">Ready to secure your communications?</h2>
+        <p className="max-w-md mx-auto text-muted-foreground mb-10 text-base">
           Join thousands of professionals who trust PhiShield AI for their daily safety audit.
         </p>
       </section>
@@ -136,11 +136,11 @@ export default function Home() {
 function StatBox({ label, value, sub }: { label: string, value: string, sub: string }) {
   return (
     <div className="group p-8 bg-card border border-border rounded-2xl text-center hover:border-primary transition-all">
-      <h3 className="text-4xl font-bold text-primary mb-2 tracking-tight group-hover:scale-110 transition-transform">
+      <h3 className="text-3xl font-bold text-primary mb-2 tracking-tight group-hover:scale-110 transition-transform">
         <motion.span initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}>{value}</motion.span>
       </h3>
-      <p className="font-bold text-sm uppercase tracking-widest mb-1">{label}</p>
-      <p className="text-xs text-muted-foreground">{sub}</p>
+      <p className="font-bold text-[11px] uppercase tracking-widest mb-1">{label}</p>
+      <p className="text-[10px] text-muted-foreground">{sub}</p>
     </div>
   );
 }

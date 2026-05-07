@@ -1,18 +1,20 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Shield, AlertTriangle, CheckCircle, Loader2, X, FileText, ChevronRight } from 'lucide-react';
+import { Upload, Shield, AlertTriangle, CheckCircle, Loader2, X, FileText, ChevronRight, FileDown } from 'lucide-react';
 import { analyzeEmailImage } from '../lib/genai';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firebase';
 import ReactMarkdown from 'react-markdown';
+import { generateSecurityPDF } from '../lib/pdf';
 
 interface ScanResult {
-  verdict: 'Phishing' | 'Safe';
+  verdict: 'Phishing' | 'Safe' | 'Suspicious';
   confidence: number;
   analysis: string;
+  subject: string;
   riskIndicators: string[];
 }
 
@@ -86,7 +88,11 @@ export default function Scan() {
       const base64 = await base64Promise;
       const analysis = await analyzeEmailImage(base64, scan.file.type);
       
-      setScans(prev => prev.map(s => s.id === id ? { ...s, result: analysis, loading: false } : s));
+      // Use the AI's verdict directly
+      const finalVerdict = analysis.verdict;
+      const updatedAnalysis = { ...analysis, verdict: finalVerdict };
+      
+      setScans(prev => prev.map(s => s.id === id ? { ...s, result: updatedAnalysis, loading: false } : s));
 
       // Save to Firestore
       const path = 'scans';
@@ -94,11 +100,12 @@ export default function Scan() {
         await addDoc(collection(db, path), {
           userId: user?.uid,
           imageURL: '(Batch scan image)',
+          imageName: updatedAnalysis.subject || scan.file.name,
           status: 'completed',
-          verdict: analysis.verdict,
-          confidence: analysis.confidence,
-          analysis: analysis.analysis,
-          riskIndicators: analysis.riskIndicators,
+          verdict: finalVerdict,
+          confidence: updatedAnalysis.confidence,
+          analysis: updatedAnalysis.analysis,
+          riskIndicators: updatedAnalysis.riskIndicators,
           timestamp: serverTimestamp()
         });
       } catch (err) {
@@ -127,7 +134,7 @@ export default function Scan() {
     >
       <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-bold mb-2 tracking-tight">PhiShield AI Scanner</h1>
+          <h1 className="text-2xl font-bold mb-2 tracking-tight">PhiShield AI Scanner</h1>
         </div>
         {scans.length > 0 && (
           <button 
@@ -239,7 +246,7 @@ export default function Scan() {
                   <Shield className="w-10 h-10 text-muted-foreground/20" />
                 </div>
                 <h3 className="text-xl font-bold text-muted-foreground/40 mb-2">No Active Analysis</h3>
-                <p className="text-sm text-muted-foreground/30 max-w-xs">Select or add a security sample from the queue to begin deep inspection.</p>
+                <p className="text-sm text-muted-foreground/30 max-w-xs">Select or add a security email from the queue to begin deep inspection.</p>
               </motion.div>
             ) : (
               <motion.div 
@@ -254,13 +261,13 @@ export default function Scan() {
                       <img src={activeScan.preview} className="w-full h-full object-contain" alt="Deep Inspect" />
                     </div>
                     <div className="text-center">
-                      <h3 className="text-2xl font-bold mb-2">Ready for Analysis</h3>
-                      <p className="text-muted-foreground mb-8">This sample is queued for AI-driven cybersecurity intelligence.</p>
+                      <h3 className="text-xl font-bold mb-2">Ready for Analysis</h3>
+                      <p className="text-sm text-muted-foreground mb-8">This email is queued for AI-driven cybersecurity intelligence.</p>
                       <button 
                         onClick={() => scanSingleImage(activeScan.id)}
-                        className="px-12 py-4 bg-primary text-white rounded-2xl font-bold text-lg hover:scale-105 transition-all shadow-2xl shadow-primary/30 flex items-center gap-3 mx-auto"
+                        className="px-10 py-3.5 bg-primary text-white rounded-2xl font-bold text-base hover:scale-105 transition-all shadow-2xl shadow-primary/30 flex items-center gap-3 mx-auto"
                       >
-                        <Shield className="w-6 h-6" /> Start Scan
+                        <Shield className="w-5 h-5" /> Start Scan
                       </button>
                     </div>
                   </div>
@@ -274,8 +281,8 @@ export default function Scan() {
                       <Shield className="absolute inset-0 m-auto w-8 h-8 text-primary animate-pulse" />
                     </div>
                     <div className="space-y-3">
-                      <h3 className="text-3xl font-bold tracking-tight">Scanning...</h3>
-                      <p className="text-muted-foreground max-w-sm mx-auto italic">Analyzing threat patterns and domain metrics.</p>
+                      <h3 className="text-2xl font-bold tracking-tight">Scanning...</h3>
+                      <p className="text-xs text-muted-foreground max-w-sm mx-auto italic">Analyzing threat patterns and domain metrics.</p>
                     </div>
                   </div>
                 )}
@@ -309,13 +316,13 @@ export default function Scan() {
                           {activeScan.result.verdict === 'Phishing' ? <AlertTriangle className="w-12 h-12" /> : <CheckCircle className="w-12 h-12" />}
                         </div>
                         <div>
-                          <h2 className={`text-4xl font-bold tracking-tighter ${
+                          <h2 className={`text-3xl font-bold tracking-tighter ${
                             activeScan.result.verdict === 'Phishing' ? 'text-red-500' : 'text-emerald-500'
                           }`}>
                             {activeScan.result.verdict} Alert
                           </h2>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Risk Confidence</span>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Confidence</span>
                             <div className="h-1 w-24 bg-muted rounded-full overflow-hidden">
                               <div 
                                 className={`h-full transition-all duration-1000 ${activeScan.result.verdict === 'Phishing' ? 'bg-red-500' : 'bg-emerald-500'}`}
@@ -325,6 +332,26 @@ export default function Scan() {
                             <span className="text-xs font-bold font-mono">{activeScan.result.confidence}%</span>
                           </div>
                         </div>
+                      </div>
+                      
+                      <div className="flex gap-4">
+                        <button 
+                          onClick={() => {
+                            if (!activeScan.result) return;
+                            generateSecurityPDF({
+                              imageName: activeScan.file.name,
+                              verdict: activeScan.result.verdict,
+                              confidence: activeScan.result.confidence,
+                              timestamp: new Date().toLocaleString(),
+                              analysis: activeScan.result.analysis,
+                              riskIndicators: activeScan.result.riskIndicators
+                            });
+                          }}
+                          className="flex items-center gap-2 px-6 py-2.5 bg-muted hover:bg-muted/80 rounded-2xl text-[11px] font-bold uppercase tracking-widest transition-all"
+                        >
+                          <FileDown className="w-4 h-4" />
+                          Export Report (PDF)
+                        </button>
                       </div>
                     </div>
 
@@ -336,7 +363,7 @@ export default function Scan() {
                           <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.4em]">Report Analysis</h4>
                         </div>
                         <div className="prose prose-invert max-w-none">
-                          <div className="text-foreground/90 leading-[2] space-y-12 text-lg tracking-tight">
+                          <div className="text-foreground/90 leading-relaxed space-y-4 text-sm tracking-normal">
                             <ReactMarkdown>
                               {activeScan.result.analysis.replace(/^#+ (Cybersecurity Analysis Report|Phishing Analysis Report|Security Report).*\n?/i, '')}
                             </ReactMarkdown>
@@ -352,19 +379,19 @@ export default function Scan() {
                             <h4 className="text-[11px] font-bold text-red-500 uppercase tracking-[0.4em]">Threat Signatures</h4>
                           </div>
                           
-                          <div className="flex flex-col gap-3">
+                          <div className="flex flex-col gap-2">
                             {activeScan.result.riskIndicators.map((indicator, idx) => (
                               <motion.div 
                                 key={idx}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: idx * 0.1 }}
-                                className="flex items-center gap-4 p-5 rounded-2xl border border-red-500/20 bg-red-500/5 group hover:bg-red-500/10 transition-all shadow-lg hover:shadow-red-500/5 w-full"
+                                className="flex items-center gap-3 p-3 rounded-xl border border-red-500/20 bg-red-500/5 group hover:bg-red-500/10 transition-all w-full"
                               >
-                                <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
-                                  <AlertTriangle className="w-5 h-5" />
+                                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
+                                  <AlertTriangle className="w-4 h-4" />
                                 </div>
-                                <span className="font-bold text-sm text-red-400 leading-tight uppercase tracking-widest">
+                                <span className="font-bold text-[11px] text-red-400 leading-tight uppercase tracking-widest">
                                   {indicator}
                                 </span>
                               </motion.div>
@@ -380,7 +407,7 @@ export default function Scan() {
                               <CheckCircle className="w-7 h-7 text-emerald-500" />
                             </div>
                             <div>
-                              <p className="text-xl font-bold text-emerald-500 mb-1">Authenticated Sample</p>
+                              <p className="text-xl font-bold text-emerald-500 mb-1">Authenticated Communication</p>
                               <p className="text-sm text-muted-foreground/80 leading-relaxed">This communication exhibits high fidelity consistent with trusted domains and lacks standard deceptive markers.</p>
                             </div>
                           </div>

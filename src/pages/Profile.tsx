@@ -86,12 +86,12 @@ export default function Profile() {
                   </div>
                 ) : (
                   <>
-                    <h1 className="text-2xl font-bold tracking-tight">{user.displayName}</h1>
+                    <h1 className="text-xl font-bold tracking-tight">{user.displayName}</h1>
                     <button 
                       onClick={() => setIsEditing(true)}
                       className="p-2 text-muted-foreground hover:text-primary transition-colors"
                     >
-                      <Edit2 className="w-4 h-4" />
+                      <Edit2 className="w-3.5 h-3.5" />
                     </button>
                   </>
                 )}
