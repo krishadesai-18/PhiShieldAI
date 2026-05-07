@@ -41,10 +41,10 @@ service cloud.firestore {
       return data.userId is string && data.userId == request.auth.uid &&
              data.imageURL is string && data.imageURL.size() <= 1048576 && // 1MB limit for base64
              data.status in ['pending', 'completed', 'failed'] &&
-             data.verdict in ['phishing', 'safe', 'suspicious'] &&
+             data.verdict in ['Phishing', 'Safe'] &&
              data.confidence is number && data.confidence >= 0 && data.confidence <= 100 &&
-             data.explanation is string && data.explanation.size() <= 10000 &&
-             data.indicators is map &&
+             data.analysis is string && data.analysis.size() <= 20000 &&
+             data.riskIndicators is list && data.riskIndicators.size() <= 50 &&
              data.timestamp == request.time;
     }
 

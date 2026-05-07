@@ -38,7 +38,8 @@ export default function Dashboard() {
         }
         
         const counts = scans.reduce((acc: any, curr: any) => {
-          acc[curr.verdict] = (acc[curr.verdict] || 0) + 1;
+          const v = (curr.verdict || '').toLowerCase();
+          acc[v] = (acc[v] || 0) + 1;
           acc.total = (acc.total || 0) + 1;
           return acc;
         }, { total: 0, safe: 0, phishing: 0, suspicious: 0 });
@@ -70,10 +71,10 @@ export default function Dashboard() {
     >
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Security Console</h1>
+          <h1 className="text-3xl font-bold tracking-tight">PhiShield AI Dashboard</h1>
           <p className="text-muted-foreground">Overview of your organizational threat landscape.</p>
         </div>
-        <Link to="/scan" className="px-6 py-2 bg-primary text-white rounded-lg font-semibold flex items-center gap-2 hover:bg-primary/90 transition-all">
+        <Link to="/scan" className="px-6 py-3 bg-primary text-white rounded-2xl font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20">
           <Shield className="w-4 h-4" />
           New Scan
         </Link>
@@ -87,7 +88,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-1 bg-card border border-border rounded-2xl p-6">
+        <div className="md:col-span-1 bg-card border border-border rounded-3xl p-6 shadow-xl">
           <h3 className="text-xl font-bold mb-6">Threat Distribution</h3>
           {data.length > 0 ? (
             <div className="h-64">
@@ -126,7 +127,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="md:col-span-2 bg-card border border-border rounded-2xl p-6">
+        <div className="md:col-span-2 bg-card border border-border rounded-3xl p-6 shadow-xl">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold">Recent Forensics</h3>
             <Link to="/history" className="text-sm text-primary hover:underline flex items-center gap-1">
@@ -139,8 +140,8 @@ export default function Dashboard() {
               <div key={scan.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-border/50">
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    scan.verdict === 'phishing' ? 'bg-red-500/10 text-red-500' :
-                    scan.verdict === 'safe' ? 'bg-emerald-500/10 text-emerald-500' :
+                    scan.verdict?.toLowerCase() === 'phishing' ? 'bg-red-500/10 text-red-500' :
+                    scan.verdict?.toLowerCase() === 'safe' ? 'bg-emerald-500/10 text-emerald-500' :
                     'bg-amber-500/10 text-amber-500'
                   }`}>
                     <Shield className="w-6 h-6" />
@@ -166,12 +167,12 @@ export default function Dashboard() {
 
 function StatCard({ title, value, icon }: { title: string, value: number, icon: React.ReactNode }) {
   return (
-    <div className="p-6 bg-card border border-border rounded-2xl">
+    <div className="p-6 bg-card border border-border rounded-3xl shadow-lg hover:shadow-xl transition-all">
       <div className="flex items-center justify-between mb-4">
-        <span className="text-sm text-muted-foreground font-medium uppercase tracking-wider">{title}</span>
+        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">{title}</span>
         {icon}
       </div>
-      <div className="text-3xl font-bold">{value}</div>
+      <div className="text-3xl font-bold tracking-tight">{value}</div>
     </div>
   );
 }

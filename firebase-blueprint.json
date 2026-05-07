@@ -24,23 +24,13 @@
         "userId": { "type": "string" },
         "imageURL": { "type": "string" },
         "status": { "type": "string", "enum": ["pending", "completed", "failed"] },
-        "verdict": { "type": "string", "enum": ["phishing", "safe", "suspicious"] },
+        "verdict": { "type": "string", "enum": ["Phishing", "Safe"] },
         "confidence": { "type": "number" },
-        "explanation": { "type": "string" },
-        "indicators": {
-          "type": "object",
-          "properties": {
-            "suspiciousLinks": { "type": "boolean" },
-            "urgencyLanguage": { "type": "boolean" },
-            "fakeDomains": { "type": "boolean" },
-            "impersonation": { "type": "boolean" },
-            "grammarMistakes": { "type": "boolean" },
-            "credentialStealing": { "type": "boolean" }
-          }
-        },
+        "analysis": { "type": "string" },
+        "riskIndicators": { "type": "array", "items": { "type": "string" } },
         "timestamp": { "type": "string", "format": "date-time" }
       },
-      "required": ["userId", "imageURL", "timestamp"]
+      "required": ["userId", "imageURL", "timestamp", "verdict", "analysis", "riskIndicators"]
     },
     "Report": {
       "title": "Security Report",

@@ -55,8 +55,8 @@ export default function History() {
   };
 
   const filteredScans = scans.filter(scan => 
-    scan.verdict.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    scan.explanation.toLowerCase().includes(searchTerm.toLowerCase())
+    (scan.verdict || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (scan.analysis || scan.explanation || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) return <div className="p-20 text-center">Decrypting history logs...</div>;
@@ -69,7 +69,7 @@ export default function History() {
     >
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Threat Archive</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Threat Archive</h1>
           <p className="text-muted-foreground">Historical records of all security investigations.</p>
         </div>
         
@@ -81,16 +81,16 @@ export default function History() {
               placeholder="Search forensics..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 bg-card border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="pl-10 pr-4 py-2 bg-card border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all w-full md:w-64"
             />
           </div>
-          <button className="p-2 border border-border rounded-lg hover:bg-card">
+          <button className="p-2.5 border border-border rounded-xl hover:bg-card transition-all active:scale-95 text-muted-foreground">
             <Filter className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+      <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -107,8 +107,8 @@ export default function History() {
                 <tr key={scan.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors group">
                   <td className="p-4">
                     <div className={`w-2 h-2 rounded-full ${
-                      scan.verdict === 'phishing' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' :
-                      scan.verdict === 'safe' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' :
+                      scan.verdict?.toLowerCase() === 'phishing' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' :
+                      scan.verdict?.toLowerCase() === 'safe' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' :
                       'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'
                     }`} />
                   </td>
@@ -125,8 +125,8 @@ export default function History() {
                   </td>
                   <td className="p-4">
                     <span className={`text-sm font-bold capitalize ${
-                      scan.verdict === 'phishing' ? 'text-red-500' :
-                      scan.verdict === 'safe' ? 'text-emerald-500' :
+                      scan.verdict?.toLowerCase() === 'phishing' ? 'text-red-500' :
+                      scan.verdict?.toLowerCase() === 'safe' ? 'text-emerald-500' :
                       'text-amber-500'
                     }`}>
                       {scan.verdict}
