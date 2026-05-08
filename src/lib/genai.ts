@@ -19,16 +19,17 @@ export async function analyzeEmailImage(base64Image: string, mimeType: string) {
     - Grammar & Spelling: Note inconsistencies that often appear in low-effort phishing.
 
     Threat Weighting Guidelines:
-    - MINOR INDICATORS (+5 to +10 each): Generic greetings, mild urgency, missing personalization, generic sign-off, security-related wording, password expiry notification (institutional), free hosting domains, or unknown but believable domains. These alone should NEVER produce high-confidence phishing classification.
-    - MODERATE INDICATORS (+10 to +20 each): Shortened URLs, suspicious wording, mild impersonation, external document links, unusual sender patterns, excessive urgency, or lack of branding.
-    - CRITICAL INDICATORS (+25 to +40 each): Direct password requests, OTP requests, banking/payment requests, fake login pages, credential harvesting attempts, threatening account suspension, fake impersonation of trusted companies, or requests for sensitive information.
+    - MINOR INDICATORS (+5 to +10 each): Generic greetings (e.g., "Dear Customer"), mild urgency, missing personalization, generic sign-off, security-related wording, password expiry notification (institutional), free hosting domains (unless paired with high-risk signals), or unknown but believable domains. These alone should NEVER produce phishing classification.
+    - MODERATE INDICATORS (+10 to +20 each): Shortened URLs, suspicious/unprofessional wording, mild impersonation, external document links, unusual sender patterns, excessive but non-threatening urgency, or lack of branding.
+    - CRITICAL INDICATORS (+25 to +40 each): Direct password requests, OTP requests, banking/payment/financial requests, fake login pages, credential harvesting attempts, threatening account/service suspension, fake impersonation of specific trusted companies, or direct requests for sensitive PII.
 
-    Calibration & Calibration Logic:
-    - SAFE (0-35% Confidence): Professional tone, legitimate branding, trustworthy links, no credential theft, no threatening urgency. Output VERY low scores (e.g., 5-15%) for clear safe emails.
-    - SUSPICIOUS (36-75% Confidence): Mixed signals, generic greetings, mild urgency, security warnings, or institutional notifications (e.g., password expiry, VPN notice) without clear malicious behavior. These should stay within 45-70%.
-    - PHISHING (76-100% Confidence): ONLY for clear malicious intent like credential harvesting, financial scams, or undeniable impersonation. 90%+ confidence should be rare and reserved for extremely obvious threats like fake banking logins.
+    Calibration & Classification Logic:
+    - SAFE (0-35% Confidence): Professional tone, legitimate branding, trustworthy links, no credential theft attempts, no threatening urgency. Safe emails MUST have low scores (e.g., 5-20%).
+    - SUSPICIOUS (36-75% Confidence): Mixed signals, generic greetings, mild urgency, security warnings, or institutional notifications (e.g., university password expiry, company VPN notice, internal policy updates) without clear malicious behavior. These should typically be between 45-70%.
+    - PHISHING (76-100% Confidence): ONLY for clear malicious intent like fake banking logins, credential harvesting, undeniable impersonation for theft, or financial scams. 90%+ scores MUST be reserved ONLY for undeniable, extremely obvious threats.
 
-    Institutional Email Handling: Reduce phishing confidence if the domain appears educational or corporate and structure resembles legitimate IT communication (e.g., university password expiry). These should stay in the SUSPICIOUS category (under 75%) unless explicit malicious behavior is found.
+    Institutional & Workplace Notifications:
+    If an email structure resembles legitimate corporate/educational notification (password expiry, VPN, policy updates) and branding exists even with minor suspicious signals, default to SUSPICIOUS category (under 75%) rather than Phishing. Avoid aggressive flagging of legitimate-looking business emails.
 
     OUTPUT FORMAT:
     You must return a STRICT JSON object with these EXACT keys:

@@ -67,51 +67,150 @@ export function generateSecurityPDF(data: PDFData) {
     try {
       // Add a title for the image
       doc.setTextColor(30, 30, 35);
-      doc.setFontSize(12);
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('Analyzed Evidence', 20, currentY);
-      currentY += 5;
+      doc.text('Analyzed image', 20, currentY);
+      currentY += 6;
       
       doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.2);
       doc.line(20, currentY, 190, currentY);
       currentY += 10;
 
-      // jsPDF addImage(imageData, format, x, y, width, height, alias, compression, rotation)
-      // We'll try to fit it within 170x80 area
-      doc.addImage(data.imageUrl, 'JPEG', 20, currentY, 170, 80, undefined, 'FAST');
-      currentY += 90;
+      // jsPDF addImage handles aspect ratio if we provide width and calculate height
+      // Or we can get image properties
+      const imgProps = doc.getImageProperties(data.imageUrl);
+      const pageWidth = 170; // 210 - 20 - 20
+      const pageHeight = 160; 
+      
+      let imgWidth = imgProps.width;
+      let imgHeight = imgProps.height;
+      
+      // Proportional scaling
+      const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
+      const finalWidth = imgWidth * ratio;
+      const finalHeight = imgHeight * ratio;
+      
+      doc.addImage(data.imageUrl, 'JPEG', 20 + (pageWidth - finalWidth) / 2, currentY, finalWidth, finalHeight, undefined, 'FAST');
     } catch (e) {
       console.error("Failed to add image to PDF:", e);
-      currentY += 10;
     }
   }
   
+  // Force new page for Analysis as requested
+  doc.addPage();
+  currentY = 20;
+
   // Analysis
-  doc.setTextColor(30, 30, 35);
-  doc.setFontSize(12);
+  doc.setTextColor(verdictColor);
+  doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('Security Analysis', 20, currentY);
-  currentY += 2;
+  doc.text('Report analysis', 20, currentY);
+  currentY += 6;
   
-  doc.setDrawColor(200, 200, 200);
-  doc.line(20, currentY, 190, currentY);
-  currentY += 8;
+  doc.setDrawColor(verdictColor);
+  doc.setLineWidth(1);
+  doc.line(20, currentY, 40, currentY); // Accent line
+  currentY += 12;
   
   doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
   doc.setTextColor(60, 60, 60);
-  
-  // Split long text into lines
-  const splitAnalysis = doc.splitTextToSize(data.analysis.replace(/\*\*/g, ''), 170);
-  
-  // Check if we need a new page for analysis
-  if (currentY + (splitAnalysis.length * 5) > 270) {
-    doc.addPage();
-    currentY = 20;
-  }
 
-  doc.text(splitAnalysis, 20, currentY);
-  currentY += (splitAnalysis.length * 5);
+  // Custom renderer for pointwise text with bold support (matching website style)
+  const renderRichText = (text: string, x: number, y: number, maxWidth: number) => {
+    const lines = text.split('\n');
+    let currentLineY = y;
+    const lineHeight = 6;
+
+    lines.forEach(line => {
+      // Handle page break
+      if (currentLineY > 275) {
+        doc.addPage();
+        currentLineY = 20;
+      }
+
+      const trimmedLine = line.trim();
+      if (trimmedLine === '') {
+        currentLineY += lineHeight / 2;
+        return;
+      }
+      
+      let currentX = x;
+      // Handle markdown bullets
+      const isBullet = trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ') || trimmedLine.startsWith('• ');
+      let lineToProcess = line;
+      
+      if (isBullet) {
+        doc.setTextColor(verdictColor);
+        doc.setFont('helvetica', 'bold');
+        doc.text('•', currentX, currentLineY);
+        doc.setFont('helvetica', 'normal');
+        currentX += 5;
+        // Find index of first space or actual start of text after bullet marker
+        const bulletMatch = trimmedLine.match(/^[-*•]\s*/);
+        if (bulletMatch) {
+          lineToProcess = line.substring(line.indexOf(bulletMatch[0]) + bulletMatch[0].length);
+        }
+      }
+
+      const parts = lineToProcess.split(/(\*\*.*?\*\*)/g);
+      
+      parts.forEach(part => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(verdictColor);
+          const cleanPart = part.slice(2, -2);
+          const words = cleanPart.split(' ');
+          
+          words.forEach((word, idx) => {
+            const wordWithSpace = idx === words.length - 1 ? word : word + ' ';
+            const width = doc.getTextWidth(wordWithSpace);
+            
+            if (currentX + width > x + maxWidth) {
+              currentX = isBullet ? x + 5 : x;
+              currentLineY += lineHeight;
+              // Check page break again inside word loop
+              if (currentLineY > 275) {
+                doc.addPage();
+                currentLineY = 20;
+              }
+            }
+            doc.text(wordWithSpace, currentX, currentLineY);
+            currentX += width;
+          });
+        } else {
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(60, 60, 60);
+          const words = part.split(' ');
+          words.forEach((word, idx) => {
+            if (word === '') return;
+            const wordWithSpace = idx === words.length - 1 ? word : word + ' ';
+            const width = doc.getTextWidth(wordWithSpace);
+            
+            if (currentX + width > x + maxWidth) {
+              currentX = isBullet ? x + 5 : x;
+              currentLineY += lineHeight;
+              // Check page break again inside word loop
+              if (currentLineY > 275) {
+                doc.addPage();
+                currentLineY = 20;
+              }
+            }
+            doc.text(wordWithSpace, currentX, currentLineY);
+            currentX += width;
+          });
+        }
+      });
+      
+      currentLineY += lineHeight;
+    });
+    
+    return currentLineY + lineHeight;
+  };
+
+  // Filter out headers if they are redundant and render using the rich text helper
+  const cleanAnalysis = data.analysis;
+  currentY = renderRichText(cleanAnalysis, 20, currentY, 170);
   
   // Risk Indicators
   if (data.riskIndicators && data.riskIndicators.length > 0) {
