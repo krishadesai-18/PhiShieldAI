@@ -1,20 +1,111 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# PhiShield AI 
 
-# Run and deploy your AI Studio app
+AI-powered phishing email detection and analysis platform built to identify suspicious and malicious emails using intelligent threat analysis.
 
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/510575f5-3b48-4685-a65e-083dc2f8366a
-
-## Run Locally
-
-**Prerequisites:**  Node.js
+## Live Demo
+[PhiShield AI](https://phi-shield-ai.vercel.app/)
 
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+
+# About The Project
+
+PhiShield AI is a modern cybersecurity web application designed to detect phishing and suspicious emails using AI-based analysis techniques.
+
+The platform allows users to:
+- Scan email content
+- Detect phishing attempts
+- Analyze suspicious links and sender patterns
+- View confidence scores and threat explanations
+- Maintain scan history
+- Monitor email threat activity through a clean dashboard
+
+
+
+# Features
+
+- Google Authentication
+- AI-Powered Phishing Detection
+- Interactive Dashboard
+- Scan History Tracking
+- Safe / Suspicious / Phishing Classification
+- Threat Confidence Scores
+- Modern Dark Theme UI
+- Responsive Design
+- Persistent Login Sessions
+- Delete History Functionality
+- Detailed Threat Analysis
+
+
+
+# Tech Stack
+- ## Frontend
+- React.js
+- Tailwind CSS
+- JavaScript
+
+- ## Backend & Services
+- Firebase Authentication
+- Firebase Firestore
+- Google AI Integration
+
+## Deployment
+- Vercel
+
+
+
+# How It Works
+
+1. User signs in using Google Authentication.
+2. Email content is submitted for analysis.
+3. The AI engine evaluates:
+   - Suspicious keywords
+   - Sender behavior
+   - Malicious links
+   - Urgency patterns
+   - Domain anomalies
+4. The system classifies emails as:
+   - Safe
+   - Suspicious
+   - Phishing
+5. Results are stored in scan history.
+
+
+
+# Threat Classification Logic
+
+| Confidence Score | Classification |
+|------------------|---------------|
+| 0–39%            | Safe |
+| 40–75%           | Suspicious |
+| 76–100%          | Phishing |
+
+
+
+# Authentication Flow
+
+- First-time users sign in with Google.
+- Returning users stay logged in automatically.
+- Logout securely clears the session.
+- Protected routes prevent unauthorized access.
+
+
+
+# Responsive Design
+
+Optimized for:
+- Desktop
+- Tablet
+- Mobile Devices
+
+
+
+# Installation
+
+```bash
+git clone <your-repository-link>
+
+cd phishield-ai
+
+npm install
+
+npm run dev
