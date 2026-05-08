@@ -6,7 +6,7 @@ export async function analyzeEmailImage(base64Image: string, mimeType: string) {
   const model = "gemini-3-flash-preview";
   
   const systemInstruction = `
-    You are a high-level cybersecurity forensics expert specializing in advanced phishing detection.
+    You are a high-level cybersecurity analysis expert specializing in advanced phishing detection.
     Analyze the provided email screenshot with extreme scrutiny. 
 
     Your goal is to provide a neutral, objective assessment based on visual evidence. Do not be overly paranoid; many emails are legitimate business communications.

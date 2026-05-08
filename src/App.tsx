@@ -39,9 +39,9 @@ function Layout() {
   const isLoginPage = location.pathname === '/login';
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans transition-colors duration-300 overflow-x-hidden">
+    <div className={`flex flex-col font-sans transition-colors duration-300 overflow-x-hidden ${isLoginPage ? 'h-screen overflow-hidden bg-background text-foreground' : 'min-h-screen bg-background text-foreground'}`}>
       <Navbar />
-      <main className={`flex-grow container mx-auto px-4 ${isLoginPage ? 'py-0 flex items-center justify-center' : 'py-8'}`}>
+      <main className={`flex-grow container mx-auto px-4 ${isLoginPage ? 'py-0 flex items-center justify-center relative' : 'py-8'}`}>
         <AnimatedRoutes />
       </main>
       <Footer isCompact={isLoginPage} />
