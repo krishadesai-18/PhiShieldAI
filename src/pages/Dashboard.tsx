@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Shield, AlertTriangle, CheckCircle, Clock, ArrowRight } from 'lucide-react';
+import { Shield, AlertTriangle, CheckCircle, Clock, ArrowRight, AlertCircle } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firebase';
@@ -57,7 +57,7 @@ export default function Dashboard() {
 
   const data = [
     { name: 'Safe', value: stats.safe || 0, color: '#10b981' },
-    { name: 'Phishing', value: stats.phishing || 0, color: '#f43f5e' },
+    { name: 'Phishing', value: stats.phishing || 0, color: '#ef4444' },
     { name: 'Suspicious', value: stats.suspicious || 0, color: '#f59e0b' },
   ].filter(d => d.value > 0);
 
@@ -79,8 +79,8 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatCard title="Total Scans" value={stats.total} icon={<Clock className="text-primary" />} />
         <StatCard title="Safe Emails" value={stats.safe} icon={<CheckCircle className="text-emerald-500" />} />
-        <StatCard title="Phishing Blocked" value={stats.phishing} icon={<AlertTriangle className="text-rose-500" />} />
-        <StatCard title="Suspicious Flags" value={stats.suspicious} icon={<Shield className="text-amber-500" />} />
+        <StatCard title="Blocked Phishing" value={stats.phishing} icon={<AlertTriangle className="text-red-500" />} />
+        <StatCard title="Suspicious" value={stats.suspicious} icon={<AlertCircle className="text-amber-500" />} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -157,7 +157,9 @@ export default function Dashboard() {
                     scan.verdict?.toLowerCase() === 'safe' ? 'bg-emerald-500/10 text-emerald-500' :
                     'bg-amber-500/10 text-amber-500'
                   }`}>
-                    <Shield className="w-5 h-5" />
+                    {scan.verdict?.toLowerCase() === 'phishing' ? <AlertTriangle className="w-5 h-5" /> :
+                     scan.verdict?.toLowerCase() === 'suspicious' ? <AlertCircle className="w-5 h-5" /> :
+                     <CheckCircle className="w-5 h-5" />}
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate pr-4">{scan.imageName || `${scan.verdict} Detection`}</p>

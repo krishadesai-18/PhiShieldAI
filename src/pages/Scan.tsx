@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Shield, AlertTriangle, CheckCircle, Loader2, X, FileText, ChevronRight, FileDown } from 'lucide-react';
+import { Upload, Shield, AlertTriangle, CheckCircle, Loader2, X, FileText, ChevronRight, FileDown, AlertCircle } from 'lucide-react';
 import { analyzeEmailImage } from '../lib/genai';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../lib/firebase';
@@ -197,7 +197,11 @@ export default function Scan() {
                             <Loader2 className="w-2.5 h-2.5 animate-spin" /> In Progress
                           </span>
                         ) : scan.result ? (
-                          <span className={`text-[9px] font-bold uppercase tracking-widest ${scan.result.verdict === 'Phishing' ? 'text-red-500' : 'text-emerald-500'}`}>
+                          <span className={`text-[9px] font-bold uppercase tracking-widest ${
+                            scan.result.verdict === 'Phishing' ? 'text-red-500' : 
+                            scan.result.verdict === 'Suspicious' ? 'text-amber-500' : 
+                            'text-emerald-500'
+                          }`}>
                             {scan.result.verdict} Detected
                           </span>
                         ) : scan.error ? (
@@ -303,29 +307,45 @@ export default function Scan() {
 
                 {activeScan.result && (
                   <div className={`border rounded-[3rem] overflow-hidden shadow-2xl transition-all ${
-                    activeScan.result.verdict === 'Phishing' ? 'border-red-500/30' : 'border-emerald-500/30'
+                    activeScan.result.verdict === 'Phishing' ? 'border-red-500/30' : 
+                    activeScan.result.verdict === 'Suspicious' ? 'border-amber-500/30' :
+                    'border-emerald-500/30'
                   }`}>
                     {/* Header */}
                     <div className={`p-10 flex flex-col sm:flex-row items-center justify-between gap-6 ${
-                      activeScan.result.verdict === 'Phishing' ? 'bg-red-500/10' : 'bg-emerald-500/10'
+                      activeScan.result.verdict === 'Phishing' ? 'bg-red-500/10' : 
+                      activeScan.result.verdict === 'Suspicious' ? 'bg-amber-500/10' :
+                      'bg-emerald-500/10'
                     }`}>
                       <div className="flex items-center gap-6">
                         <div className={`w-20 h-20 rounded-3xl flex items-center justify-center ${
-                          activeScan.result.verdict === 'Phishing' ? 'bg-red-500 text-white shadow-2xl shadow-red-500/50' : 'bg-emerald-500 text-white shadow-2xl shadow-emerald-500/50'
+                          activeScan.result.verdict === 'Phishing' ? 'bg-red-500 text-white shadow-2xl shadow-red-500/50' : 
+                          activeScan.result.verdict === 'Suspicious' ? 'bg-amber-500 text-white shadow-2xl shadow-amber-500/50' :
+                          'bg-emerald-500 text-white shadow-2xl shadow-emerald-500/50'
                         }`}>
-                          {activeScan.result.verdict === 'Phishing' ? <AlertTriangle className="w-12 h-12" /> : <CheckCircle className="w-12 h-12" />}
+                          {activeScan.result.verdict === 'Phishing' ? <AlertTriangle className="w-12 h-12" /> : 
+                           activeScan.result.verdict === 'Suspicious' ? <AlertCircle className="w-12 h-12" /> :
+                           <CheckCircle className="w-12 h-12" />}
                         </div>
                         <div>
                           <h2 className={`text-3xl font-bold tracking-tighter ${
-                            activeScan.result.verdict === 'Phishing' ? 'text-red-500' : 'text-emerald-500'
+                            activeScan.result.verdict === 'Phishing' ? 'text-red-500' : 
+                            activeScan.result.verdict === 'Suspicious' ? 'text-amber-500' :
+                            'text-emerald-500'
                           }`}>
-                            {activeScan.result.verdict} Alert
+                            {activeScan.result.verdict === 'Safe' ? 'Safe Email' : 
+                             activeScan.result.verdict === 'Suspicious' ? 'Suspicious Alert' : 
+                             'Phishing Alert'}
                           </h2>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Confidence</span>
                             <div className="h-1 w-24 bg-muted rounded-full overflow-hidden">
                               <div 
-                                className={`h-full transition-all duration-1000 ${activeScan.result.verdict === 'Phishing' ? 'bg-red-500' : 'bg-emerald-500'}`}
+                                className={`h-full transition-all duration-1000 ${
+                                  activeScan.result.verdict === 'Phishing' ? 'bg-red-500' : 
+                                  activeScan.result.verdict === 'Suspicious' ? 'bg-amber-500' :
+                                  'bg-emerald-500'
+                                }`}
                                 style={{ width: `${activeScan.result.confidence}%` }}
                               />
                             </div>
@@ -371,12 +391,30 @@ export default function Scan() {
                         </div>
                       </div>
 
-                      {/* Risk Indicators - Enhanced Layout */}
-                      {activeScan.result.riskIndicators.length > 0 && (
+                      {/* Risk Indicators / Safe Message */}
+                      {activeScan.result.verdict === 'Safe' ? (
+                        <div className="pt-10 border-t border-border">
+                          <div className={`p-8 bg-emerald-500/5 border border-emerald-500/10 rounded-[2rem] flex items-start gap-6`}>
+                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+                              <CheckCircle className="w-7 h-7 text-emerald-500" />
+                            </div>
+                            <div>
+                              <p className="text-xl font-bold text-emerald-500 mb-1">Low threat risk detected</p>
+                              <p className="text-sm text-muted-foreground/80 leading-relaxed">No significant phishing indicators detected. This email appears legitimate and lacks standard deceptive markers.</p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : activeScan.result.riskIndicators.length > 0 && (
                         <div className="pt-12 border-t border-border/50">
                           <div className="flex items-center gap-3 mb-8">
-                            <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-                            <h4 className="text-[11px] font-bold text-red-500 uppercase tracking-[0.4em]">Threat Signatures</h4>
+                            <div className={`w-2 h-2 rounded-full shadow-[0_0_10px_rgba(var(--color),0.5)] ${
+                              activeScan.result.verdict === 'Phishing' ? 'bg-red-500 [--color:239,68,68]' : 'bg-amber-500 [--color:245,158,11]'
+                            }`} />
+                            <h4 className={`text-[11px] font-bold uppercase tracking-[0.4em] ${
+                              activeScan.result.verdict === 'Phishing' ? 'text-red-500' : 'text-amber-500'
+                            }`}>
+                              {activeScan.result.verdict === 'Phishing' ? 'Critical Threat Signatures' : 'Risk Indicators'}
+                            </h4>
                           </div>
                           
                           <div className="flex flex-col gap-2">
@@ -386,30 +424,24 @@ export default function Scan() {
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: idx * 0.1 }}
-                                className="flex items-center gap-3 p-3 rounded-xl border border-red-500/20 bg-red-500/5 group hover:bg-red-500/10 transition-all w-full"
+                                className={`flex items-center gap-3 p-3 rounded-xl border group transition-all w-full ${
+                                  activeScan.result.verdict === 'Phishing' 
+                                    ? 'border-red-500/20 bg-red-500/5 hover:bg-red-500/10' 
+                                    : 'border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10'
+                                }`}
                               >
-                                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
-                                  <AlertTriangle className="w-4 h-4" />
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform ${
+                                  activeScan.result.verdict === 'Phishing' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'
+                                }`}>
+                                  {activeScan.result.verdict === 'Phishing' ? <AlertTriangle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                                 </div>
-                                <span className="font-bold text-[11px] text-red-400 leading-tight uppercase tracking-widest">
+                                <span className={`font-bold text-[11px] leading-tight uppercase tracking-widest ${
+                                  activeScan.result.verdict === 'Phishing' ? 'text-red-400' : 'text-amber-400'
+                                }`}>
                                   {indicator}
                                 </span>
                               </motion.div>
                             ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {activeScan.result.verdict === 'Safe' && activeScan.result.riskIndicators.length === 0 && (
-                        <div className="pt-10 border-t border-border">
-                          <div className="p-8 bg-emerald-500/5 border border-emerald-500/10 rounded-[2rem] flex items-start gap-6">
-                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center shrink-0">
-                              <CheckCircle className="w-7 h-7 text-emerald-500" />
-                            </div>
-                            <div>
-                              <p className="text-xl font-bold text-emerald-500 mb-1">Authenticated Communication</p>
-                              <p className="text-sm text-muted-foreground/80 leading-relaxed">This communication exhibits high fidelity consistent with trusted domains and lacks standard deceptive markers.</p>
-                            </div>
                           </div>
                         </div>
                       )}
