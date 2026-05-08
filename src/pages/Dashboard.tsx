@@ -149,25 +149,45 @@ export default function Dashboard() {
               <Link 
                 key={scan.id} 
                 to={`/history?id=${scan.id}`}
-                className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-border/50 hover:bg-card hover:border-primary/20 transition-all group"
+                className={`flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-border/50 transition-all group ${
+                  scan.verdict?.toLowerCase() === 'phishing' ? 'hover:border-red-500/30 hover:bg-red-500/5' :
+                  scan.verdict?.toLowerCase() === 'safe' ? 'hover:border-emerald-500/30 hover:bg-emerald-500/5' :
+                  'hover:border-amber-500/30 hover:bg-amber-500/5'
+                }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                    scan.verdict?.toLowerCase() === 'phishing' ? 'bg-red-500/10 text-red-500' :
-                    scan.verdict?.toLowerCase() === 'safe' ? 'bg-emerald-500/10 text-emerald-500' :
-                    'bg-amber-500/10 text-amber-500'
-                  }`}>
-                    {scan.verdict?.toLowerCase() === 'phishing' ? <AlertTriangle className="w-5 h-5" /> :
-                     scan.verdict?.toLowerCase() === 'suspicious' ? <AlertCircle className="w-5 h-5" /> :
-                     <CheckCircle className="w-5 h-5" />}
+                  <div className={`w-12 h-12 rounded-lg relative overflow-hidden flex items-center justify-center bg-muted`}>
+                    {scan.imageUrl ? (
+                      <img src={scan.imageUrl} alt="scan" className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                    ) : (
+                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                        scan.verdict?.toLowerCase() === 'phishing' ? 'bg-red-500/10 text-red-500' :
+                        scan.verdict?.toLowerCase() === 'safe' ? 'bg-emerald-500/10 text-emerald-500' :
+                        'bg-amber-500/10 text-amber-500'
+                      }`}>
+                        {scan.verdict?.toLowerCase() === 'phishing' ? <AlertTriangle className="w-5 h-5" /> :
+                         scan.verdict?.toLowerCase() === 'suspicious' ? <AlertCircle className="w-5 h-5" /> :
+                         <CheckCircle className="w-5 h-5" />}
+                      </div>
+                    )}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold truncate pr-4">{scan.imageName || `${scan.verdict} Detection`}</p>
+                    <p className={`text-sm font-semibold truncate pr-4 transition-colors ${
+                      scan.verdict?.toLowerCase() === 'phishing' ? 'group-hover:text-red-500' :
+                      scan.verdict?.toLowerCase() === 'safe' ? 'group-hover:text-emerald-500' :
+                      'group-hover:text-amber-500'
+                    }`}>
+                      {scan.imageName || `${scan.verdict} Detection`}
+                    </p>
                     <p className="text-[10px] text-muted-foreground">{scan.timestamp ? new Date(scan.timestamp.toDate()).toLocaleString() : 'Recent'}</p>
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-xs font-medium">{scan.confidence}% Confidence</p>
+                  <p className={`text-xs font-bold ${
+                    scan.verdict?.toLowerCase() === 'phishing' ? 'text-red-500' : 
+                    scan.verdict?.toLowerCase() === 'safe' ? 'text-emerald-500' : 
+                    'text-amber-500'
+                  }`}>{scan.confidence}%</p>
                 </div>
               </Link>
             )) : (

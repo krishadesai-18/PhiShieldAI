@@ -161,7 +161,11 @@ export default function History() {
             </thead>
             <tbody>
               {filteredScans.length > 0 ? filteredScans.map((scan) => (
-                <tr key={scan.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors group">
+                <tr key={scan.id} className={`border-b border-border/50 transition-colors group ${
+                  scan.verdict?.toLowerCase() === 'phishing' ? 'hover:bg-red-500/5' :
+                  scan.verdict?.toLowerCase() === 'safe' ? 'hover:bg-emerald-500/5' :
+                  'hover:bg-amber-500/5'
+                }`}>
                   <td className="p-3">
                     <div className={`w-2 h-2 rounded-full ${
                       scan.verdict?.toLowerCase() === 'phishing' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' :
@@ -172,12 +176,20 @@ export default function History() {
                   <td className="p-3">
                     <button 
                       onClick={() => setSelectedScan(scan)}
-                      className="text-xs font-bold truncate max-w-[250px] hover:text-primary transition-colors text-left block w-full"
+                      className={`text-xs font-bold truncate max-w-[250px] transition-colors text-left block w-full ${
+                        scan.verdict?.toLowerCase() === 'phishing' ? 'group-hover:text-red-500' :
+                        scan.verdict?.toLowerCase() === 'safe' ? 'group-hover:text-emerald-500' :
+                        'group-hover:text-amber-500'
+                      }`}
                     >
                       {scan.imageName || 'N/A'}
                     </button>
                   </td>
-                  <td className="p-3 text-xs whitespace-nowrap text-muted-foreground">
+                  <td className={`p-3 text-xs whitespace-nowrap text-muted-foreground transition-colors ${
+                    scan.verdict?.toLowerCase() === 'phishing' ? 'group-hover:text-red-400' :
+                    scan.verdict?.toLowerCase() === 'safe' ? 'group-hover:text-emerald-400' :
+                    'group-hover:text-amber-400'
+                  }`}>
                     <div className="flex items-center gap-2">
                       <Calendar className="w-3 h-3" />
                       {scan.timestamp ? new Date(scan.timestamp.toDate()).toLocaleString() : 'Just now'}
@@ -246,7 +258,9 @@ function AnalysisModal({ scan, onClose }: { scan: any, onClose: () => void }) {
               scan.verdict?.toLowerCase() === 'safe' ? 'bg-emerald-500 text-white' :
               'bg-amber-500 text-white'
             }`}>
-              <Shield className="w-6 h-6" />
+              {scan.verdict?.toLowerCase() === 'phishing' ? <AlertTriangle className="w-6 h-6" /> :
+               scan.verdict?.toLowerCase() === 'suspicious' ? <AlertCircle className="w-6 h-6" /> :
+               <Shield className="w-6 h-6" />}
             </div>
             <div>
               <h3 className="font-bold text-lg">{scan.imageName}</h3>
@@ -259,6 +273,17 @@ function AnalysisModal({ scan, onClose }: { scan: any, onClose: () => void }) {
         </div>
         
         <div className="flex-grow overflow-y-auto p-8 md:p-12 space-y-12 bg-card">
+          {scan.imageUrl && (
+            <div className="rounded-[2rem] overflow-hidden border border-border shadow-inner bg-muted/30">
+              <img 
+                src={scan.imageUrl} 
+                alt="Analyzed Evidence" 
+                className="w-full h-auto max-h-[500px] object-contain mx-auto"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+          )}
+          
           <div className="flex items-center gap-8 p-6 bg-muted/20 rounded-2xl border border-border">
             <div className="text-center">
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Verdict</p>
@@ -282,7 +307,8 @@ function AnalysisModal({ scan, onClose }: { scan: any, onClose: () => void }) {
                   confidence: scan.confidence,
                   timestamp: scan.timestamp ? new Date(scan.timestamp.toDate()).toLocaleString() : 'N/A',
                   analysis: scan.analysis,
-                  riskIndicators: scan.riskIndicators
+                  riskIndicators: scan.riskIndicators,
+                  imageUrl: scan.imageUrl
                 });
               }}
               className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all"
@@ -309,16 +335,30 @@ function AnalysisModal({ scan, onClose }: { scan: any, onClose: () => void }) {
           {scan.riskIndicators?.length > 0 && (
             <div className="space-y-8">
               <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-                <h4 className="text-[11px] font-bold text-red-500 uppercase tracking-[0.4em]">Threat Signatures</h4>
+                <div className={`w-2 h-2 rounded-full shadow-[0_0_10px_rgba(var(--color),0.5)] ${
+                  scan.verdict?.toLowerCase() === 'phishing' ? 'bg-red-500 [--color:239,68,68]' : 'bg-amber-500 [--color:245,158,11]'
+                }`} />
+                <h4 className={`text-[11px] font-bold uppercase tracking-[0.4em] ${
+                  scan.verdict?.toLowerCase() === 'phishing' ? 'text-red-500' : 'text-amber-500'
+                }`}>
+                  {scan.verdict?.toLowerCase() === 'phishing' ? 'Critical Threat Signatures' : 'Risk Indicators'}
+                </h4>
               </div>
               <div className="flex flex-col gap-2">
                 {scan.riskIndicators.map((indicator: string, idx: number) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 rounded-xl border border-red-500/20 bg-red-500/5 group hover:bg-red-500/10 transition-all">
-                    <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500">
-                      <AlertTriangle className="w-4 h-4" />
+                  <div key={idx} className={`flex items-center gap-3 p-3 rounded-xl border group hover:transition-all ${
+                    scan.verdict?.toLowerCase() === 'phishing' 
+                      ? 'border-red-500/20 bg-red-500/5 hover:bg-red-500/10' 
+                      : 'border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10'
+                  }`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      scan.verdict?.toLowerCase() === 'phishing' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'
+                    }`}>
+                      {scan.verdict?.toLowerCase() === 'phishing' ? <AlertTriangle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                     </div>
-                    <span className="font-bold text-[11px] text-red-400 leading-tight uppercase tracking-widest">{indicator}</span>
+                    <span className={`font-bold text-[11px] leading-tight uppercase tracking-widest ${
+                      scan.verdict?.toLowerCase() === 'phishing' ? 'text-red-400' : 'text-amber-400'
+                    }`}>{indicator}</span>
                   </div>
                 ))}
               </div>

@@ -85,21 +85,22 @@ export default function Scan() {
         reader.readAsDataURL(scan.file);
       });
       
-      const base64 = await base64Promise;
-      const analysis = await analyzeEmailImage(base64, scan.file.type);
+      const base64Body = await base64Promise;
+      const analysis = await analyzeEmailImage(base64Body, scan.file.type);
+      const imageUrl = `data:${scan.file.type};base64,${base64Body}`;
       
       // Use the AI's verdict directly
       const finalVerdict = analysis.verdict;
       const updatedAnalysis = { ...analysis, verdict: finalVerdict };
       
-      setScans(prev => prev.map(s => s.id === id ? { ...s, result: updatedAnalysis, loading: false } : s));
+      setScans(prev => prev.map(s => s.id === id ? { ...s, result: updatedAnalysis, imageUrl, loading: false } : s));
 
       // Save to Firestore
       const path = 'scans';
       try {
         await addDoc(collection(db, path), {
           userId: user?.uid,
-          imageURL: '(Batch scan image)',
+          imageUrl,
           imageName: updatedAnalysis.subject || scan.file.name,
           status: 'completed',
           verdict: finalVerdict,
@@ -364,7 +365,8 @@ export default function Scan() {
                               confidence: activeScan.result.confidence,
                               timestamp: new Date().toLocaleString(),
                               analysis: activeScan.result.analysis,
-                              riskIndicators: activeScan.result.riskIndicators
+                              riskIndicators: activeScan.result.riskIndicators,
+                              imageUrl: (activeScan as any).imageUrl
                             });
                           }}
                           className="flex items-center gap-2 px-6 py-2.5 bg-muted hover:bg-muted/80 rounded-2xl text-[11px] font-bold uppercase tracking-widest transition-all"

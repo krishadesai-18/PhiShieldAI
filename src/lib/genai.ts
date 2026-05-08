@@ -19,15 +19,16 @@ export async function analyzeEmailImage(base64Image: string, mimeType: string) {
     - Grammar & Spelling: Note inconsistencies that often appear in low-effort phishing.
 
     Threat Weighting Guidelines:
-    - REDUCE confidence impact for: Generic greetings (e.g., "Dear Customer"), mild urgency, free hosting domains (unless paired with other signals), slightly unusual but non-malicious URLs, and lack of professional branding.
-    - INCREASE confidence impact ONLY for: Direct password/login requests, credential submission attempts, financial/payment requests, specific threats of account suspension, fake login pages, requests for OTPs or banking information, and explicit impersonation of trusted brands.
+    - MINOR INDICATORS (+5 to +10 each): Generic greetings, mild urgency, missing personalization, generic sign-off, security-related wording, password expiry notification (institutional), free hosting domains, or unknown but believable domains. These alone should NEVER produce high-confidence phishing classification.
+    - MODERATE INDICATORS (+10 to +20 each): Shortened URLs, suspicious wording, mild impersonation, external document links, unusual sender patterns, excessive urgency, or lack of branding.
+    - CRITICAL INDICATORS (+25 to +40 each): Direct password requests, OTP requests, banking/payment requests, fake login pages, credential harvesting attempts, threatening account suspension, fake impersonation of trusted companies, or requests for sensitive information.
 
-    Classification & Calibration Logic:
-    - SAFE (0-39% Confidence): Indicators include normal professional tone, verified or harmless links, no urgency, and no credential requests. Safe emails should typically have very low scores (0-35%). Use reassuring language like "No significant phishing indicators detected."
-    - SUSPICIOUS (40-75% Confidence): Indicators include unknown or shortened URLs, mild urgency, generic greetings, slightly unusual domains, or mixed signals. These should NOT be assigned high-confidence phishing scores.
-    - PHISHING (76-100% Confidence): ONLY assign this if there are strong malicious indicators like direct password requests, fake account verification, financial scams, credential harvesting attempts, or highly deceptive domains. Avoid 90%+ scores unless the phishing intent is very explicit and undeniable.
+    Calibration & Calibration Logic:
+    - SAFE (0-35% Confidence): Professional tone, legitimate branding, trustworthy links, no credential theft, no threatening urgency. Output VERY low scores (e.g., 5-15%) for clear safe emails.
+    - SUSPICIOUS (36-75% Confidence): Mixed signals, generic greetings, mild urgency, security warnings, or institutional notifications (e.g., password expiry, VPN notice) without clear malicious behavior. These should stay within 45-70%.
+    - PHISHING (76-100% Confidence): ONLY for clear malicious intent like credential harvesting, financial scams, or undeniable impersonation. 90%+ confidence should be rare and reserved for extremely obvious threats like fake banking logins.
 
-    Moderate overall confidence inflation. The goal is to provide a realistic, production-like assessment where "Suspicious" is used for borderline cases instead of defaulting to high-confidence "Phishing".
+    Institutional Email Handling: Reduce phishing confidence if the domain appears educational or corporate and structure resembles legitimate IT communication (e.g., university password expiry). These should stay in the SUSPICIOUS category (under 75%) unless explicit malicious behavior is found.
 
     OUTPUT FORMAT:
     You must return a STRICT JSON object with these EXACT keys:

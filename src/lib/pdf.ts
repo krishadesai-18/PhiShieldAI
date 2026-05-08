@@ -7,6 +7,7 @@ export interface PDFData {
   timestamp: string;
   analysis: string;
   riskIndicators: string[];
+  imageUrl?: string;
 }
 
 export function generateSecurityPDF(data: PDFData) {
@@ -58,15 +59,43 @@ export function generateSecurityPDF(data: PDFData) {
   doc.setFont('helvetica', 'bold');
   doc.text(data.verdict.toUpperCase(), 25, 87);
   doc.text(`${data.confidence}%`, 140, 87);
+
+  let currentY = 105;
+
+  // Evidence Image
+  if (data.imageUrl) {
+    try {
+      // Add a title for the image
+      doc.setTextColor(30, 30, 35);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Analyzed Evidence', 20, currentY);
+      currentY += 5;
+      
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, currentY, 190, currentY);
+      currentY += 10;
+
+      // jsPDF addImage(imageData, format, x, y, width, height, alias, compression, rotation)
+      // We'll try to fit it within 170x80 area
+      doc.addImage(data.imageUrl, 'JPEG', 20, currentY, 170, 80, undefined, 'FAST');
+      currentY += 90;
+    } catch (e) {
+      console.error("Failed to add image to PDF:", e);
+      currentY += 10;
+    }
+  }
   
   // Analysis
   doc.setTextColor(30, 30, 35);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text('Security Analysis', 20, 110);
+  doc.text('Security Analysis', 20, currentY);
+  currentY += 2;
   
   doc.setDrawColor(200, 200, 200);
-  doc.line(20, 112, 190, 112);
+  doc.line(20, currentY, 190, currentY);
+  currentY += 8;
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
@@ -74,9 +103,15 @@ export function generateSecurityPDF(data: PDFData) {
   
   // Split long text into lines
   const splitAnalysis = doc.splitTextToSize(data.analysis.replace(/\*\*/g, ''), 170);
-  doc.text(splitAnalysis, 20, 120);
   
-  let currentY = 120 + (splitAnalysis.length * 5);
+  // Check if we need a new page for analysis
+  if (currentY + (splitAnalysis.length * 5) > 270) {
+    doc.addPage();
+    currentY = 20;
+  }
+
+  doc.text(splitAnalysis, 20, currentY);
+  currentY += (splitAnalysis.length * 5);
   
   // Risk Indicators
   if (data.riskIndicators && data.riskIndicators.length > 0) {

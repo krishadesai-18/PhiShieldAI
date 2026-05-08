@@ -39,12 +39,13 @@ service cloud.firestore {
 
     function isValidScan(data) {
       return data.userId is string && data.userId == request.auth.uid &&
-             data.imageURL is string && data.imageURL.size() <= 1048576 && // 1MB limit for base64
+             data.imageUrl is string && data.imageUrl.size() <= 1000000 && 
+             (data.get('imageName', '') is string && data.get('imageName', '').size() <= 512) &&
              data.status in ['pending', 'completed', 'failed'] &&
-             data.verdict in ['Phishing', 'Safe'] &&
+             data.verdict in ['Phishing', 'Safe', 'Suspicious'] &&
              data.confidence is number && data.confidence >= 0 && data.confidence <= 100 &&
-             data.analysis is string && data.analysis.size() <= 20000 &&
-             data.riskIndicators is list && data.riskIndicators.size() <= 50 &&
+             data.analysis is string && data.analysis.size() <= 50000 &&
+             data.riskIndicators is list && data.riskIndicators.size() <= 100 &&
              data.timestamp == request.time;
     }
 

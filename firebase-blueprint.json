@@ -22,15 +22,15 @@
       "properties": {
         "id": { "type": "string" },
         "userId": { "type": "string" },
-        "imageURL": { "type": "string" },
+        "imageUrl": { "type": "string" },
         "status": { "type": "string", "enum": ["pending", "completed", "failed"] },
-        "verdict": { "type": "string", "enum": ["Phishing", "Safe"] },
+        "verdict": { "type": "string", "enum": ["Phishing", "Safe", "Suspicious"] },
         "confidence": { "type": "number" },
         "analysis": { "type": "string" },
         "riskIndicators": { "type": "array", "items": { "type": "string" } },
         "timestamp": { "type": "string", "format": "date-time" }
       },
-      "required": ["userId", "imageURL", "timestamp", "verdict", "analysis", "riskIndicators"]
+      "required": ["userId", "imageUrl", "timestamp", "verdict", "analysis", "riskIndicators"]
     },
     "Report": {
       "title": "Security Report",
