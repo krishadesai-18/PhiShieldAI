@@ -43,18 +43,17 @@ export default function Navbar() {
                   <span className="text-sm font-medium hidden lg:inline">{user.displayName}</span>
                 </Link>
                 <button 
-                  onClick={() => logout()}
+                  onClick={async () => {
+                    await logout();
+                    window.location.href = '/';
+                  }}
                   className="p-2 text-muted-foreground hover:text-foreground transition-colors"
                   title="Logout"
                 >
                   <LogOut className="w-5 h-5" />
                 </button>
               </div>
-            ) : (
-              <Link to="/login" className="px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition-all">
-                Login
-              </Link>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
