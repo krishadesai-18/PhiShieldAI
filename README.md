@@ -36,17 +36,17 @@ The platform allows users to:
 
 # Tech Stack
 
-- ## Frontend
+### Frontend
 - React.js
 - Tailwind CSS
 - JavaScript
 
-- ## Backend & Services
+### Backend & Services
 - Firebase Authentication
 - Firebase Firestore
 - Google AI Integration
 
-## Deployment
+### Deployment
 - Vercel
 
 
